@@ -1,1 +1,1 @@
-# Diffusion-Models-pytorch-module-compile
+# Diffusion-Models-pytorch-module
