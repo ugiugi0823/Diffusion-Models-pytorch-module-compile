@@ -12,6 +12,9 @@ from modules import UNet_conditional, EMA
 import logging
 from torch.utils.tensorboard import SummaryWriter
 torch._dynamo.config.suppress_errors = True
+torch._dynamo.config.verbose=False
+
+
 
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=logging.INFO, datefmt="%I:%M:%S")
 
