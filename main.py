@@ -1,6 +1,8 @@
 import os
 import copy
+import time 
 import argparse
+import yaml
 import numpy as np
 import torch
 import torch.nn as nn
@@ -69,21 +71,33 @@ class Diffusion:
         return x
 
 
-def train_model(args):
-    setup_logging(args.run_name)
-    device = args.device
-    dataloader = get_data(args)
-    model = UNet_conditional(num_classes=args.num_classes).to(device)
+def train_model(cfg):
+    # get_data
+    image_size = cfg['DATA']['image_size']
+    dataset_path = cfg['DATA']['dataset_path']
+    batch_size = cfg['TRAIN']['batch_size']
+    dataloader = get_data(image_size, dataset_path, batch_size)
+
+    # setup_logging
+    # run_name = cfg['DATA']['run_name']
+    setup_logging(cfg)
+
+    # device
+    device = cfg['TRAIN']['device']
+    
+
+
+    model = UNet_conditional(num_classes=cfg['DATA']['num_classes']).to(device)
     model = torch.compile(model, backend="inductor")
-    optimizer = optim.AdamW(model.parameters(), lr=args.lr)
+    optimizer = optim.AdamW(model.parameters(), lr=cfg['TRAIN']['lr'])
     mse = nn.MSELoss()
-    diffusion = Diffusion(img_size=args.image_size, device=device)
-    logger = SummaryWriter(os.path.join("runs", args.run_name))
+    diffusion = Diffusion(img_size=cfg['DATA']['image_size'], device=device)
+    logger = SummaryWriter(os.path.join("runs", cfg['DATA']['run_name']))
     l = len(dataloader)
     ema = EMA(0.995)
     ema_model = copy.deepcopy(model).eval().requires_grad_(False)
 
-    for epoch in range(args.epochs):
+    for epoch in range(cfg['TRAIN']['epochs']):
         logging.info(f"Starting epoch {epoch}:")
         pbar = tqdm(dataloader)
         for i, (images, labels) in enumerate(pbar):
@@ -109,29 +123,36 @@ def train_model(args):
             sampled_images = diffusion.sample(model, n=len(labels), labels=labels)
             ema_sampled_images = diffusion.sample(ema_model, n=len(labels), labels=labels)
             plot_images(sampled_images)
-            save_images(sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", args.run_name, f"{epoch}.jpg"))
-            save_images(ema_sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", args.run_name, f"{epoch}_ema.jpg"))
-            torch.save(model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", args.run_name, f"ckpt_{epoch}_.pt"))
-            torch.save(ema_model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", args.run_name, f"ema_ckpt_{epoch}_.pt"))
-            torch.save(optimizer.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", args.run_name, f"optim_{epoch}_.pt"))
+            save_images(sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", cfg['DATA']['run_nam'], f"{epoch}.jpg"))
+            save_images(ema_sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", cfg['DATA']['run_nam'], f"{epoch}_ema.jpg"))
+            torch.save(model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_nam'], f"ckpt_{epoch}_.pt"))
+            torch.save(ema_model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_nam'], f"ema_ckpt_{epoch}_.pt"))
+            torch.save(optimizer.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_nam'], f"optim_{epoch}_.pt"))
 
 
 
-if __name__ == "__main__":
+
+def init():
+    # configs 
+    parser = argparse.ArgumentParser(description='iyaho')
+    parser.add_argument('--yaml_config', type=str, default='./configs/uncon.yaml', help='exp config file')    
+    args = parser.parse_args()
+    cfg = yaml.load(open(args.yaml_config,'r'), Loader=yaml.FullLoader)
+
+    return cfg 
     
-    # ARGUMENTS PARSER
-    p = argparse.ArgumentParser()
+    # # save point 
+    # train = True
+    # try:
+    #     train = input('시작할까요? Enter Yes')
+    #     print('시자아악!')
+    # except:
+    #     pass
     
+
+if __name__ == '__main__':
+    end = time.time() 
+    cfg = init()
     
-    p.add_argument("--run_name", type=str, default="DDPM_conditional", help='(글자)임의의 러닝 폴더 이름을 넣어주세요')
-    p.add_argument("--epochs", type=int, default=300, help='(정수) 훈련 횟수를 정해주세요')
-    p.add_argument("--batch_size", type=int, default=8, help='(정수)배치 사이즈를 정해주세요')
-    p.add_argument("--image_size", type=int, default=64, help='(정수)이미지 사이지를 정해주세요')
-    p.add_argument("--num_classes", type=int, default=10, help='(정수)클래스의 갯수를 넣어주세요')
-    p.add_argument("--dataset_path", type=str, default=r"/content/Diffusion-Models-pytorch-module/datasets/Landscape_classifier_02/training", help='(글자)데이터셋 경로를 넣어주세요')
-    p.add_argument("--device", type=str, default="cuda", help='(글자)GPU 로 돌릴지 CPU로 돌릴지 정해주세요!')
-    p.add_argument("--lr", type=float, default=3e-4, help='(부동소수점)러닝레이트를 넣어주세요')
-                    
-    args = p.parse_args()
-                   
-    train_model(args)
+    train_model(cfg)
+    print(time.time() -end)
