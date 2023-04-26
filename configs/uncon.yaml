@@ -1,0 +1,18 @@
+DATA:
+  run_name: ddwow
+  dataset_path: /content/Diffusion-Models-pytorch-module-compile/datasets/cifar10-64/train
+  num_classes: 10
+  image_size: 64
+
+MODEL:
+  unet: UNet_conditional
+  ema: EMA
+
+TRAIN:
+  batch_size: 8
+  device: cuda
+  epochs: 300
+  lr: 0.0003
+  multigpu: false
+  scheulder: false
+  seed: 111
