@@ -3,18 +3,21 @@ import copy
 import time 
 import argparse
 import yaml
-import numpy as np
 import torch
+
+import numpy as np
 import torch.nn as nn
-import torch._dynamo
+
 from tqdm import tqdm
 from torch import optim
+from torch.utils.tensorboard import SummaryWriter
+from GPUtil import showUtilization as gpu_usage
+
 from utils import plot_images, save_images, setup_logging, get_data
 from modules import UNet_conditional, EMA
 import logging
-from torch.utils.tensorboard import SummaryWriter
-torch._dynamo.config.suppress_errors = True
-torch._dynamo.config.verbose=False
+
+
 
 
 
@@ -88,7 +91,6 @@ def train_model(cfg):
 
 
     model = UNet_conditional(num_classes=cfg['DATA']['num_classes']).to(device)
-    model = torch.compile(model, backend="inductor")
     optimizer = optim.AdamW(model.parameters(), lr=cfg['TRAIN']['lr'])
     mse = nn.MSELoss()
     diffusion = Diffusion(img_size=cfg['DATA']['image_size'], device=device)
@@ -119,6 +121,7 @@ def train_model(cfg):
             logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
 
         if epoch % 10 == 0:
+            gpu_usage()
             labels = torch.arange(10).long().to(device)
             sampled_images = diffusion.sample(model, n=len(labels), labels=labels)
             ema_sampled_images = diffusion.sample(ema_model, n=len(labels), labels=labels)
