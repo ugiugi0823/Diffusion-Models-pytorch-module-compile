@@ -130,11 +130,11 @@ def train_model(cfg):
             sampled_images = diffusion.sample(model, n=len(labels), labels=labels)
             ema_sampled_images = diffusion.sample(ema_model, n=len(labels), labels=labels)
             plot_images(sampled_images)
-            save_images(sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", cfg['DATA']['run_nam'], f"{epoch}.jpg"))
-            save_images(ema_sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", cfg['DATA']['run_nam'], f"{epoch}_ema.jpg"))
-            torch.save(model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_nam'], f"ckpt_{epoch}_.pt"))
-            torch.save(ema_model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_nam'], f"ema_ckpt_{epoch}_.pt"))
-            torch.save(optimizer.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_nam'], f"optim_{epoch}_.pt"))
+            save_images(sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", cfg['DATA']['run_name'], f"{epoch}.jpg"))
+            save_images(ema_sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", cfg['DATA']['run_name'], f"{epoch}_ema.jpg"))
+            torch.save(model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"ckpt_{epoch}_.pt"))
+            torch.save(ema_model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"ema_ckpt_{epoch}_.pt"))
+            torch.save(optimizer.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"optim_{epoch}_.pt"))
 
 
 
