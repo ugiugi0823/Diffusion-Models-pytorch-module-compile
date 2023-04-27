@@ -75,6 +75,7 @@ class Diffusion:
 
 
 def train_model(cfg):
+    # device = 'cuda' if torch.cuda.is_available() else 'cpu'
     # get_data
     image_size = cfg['DATA']['image_size']
     dataset_path = cfg['DATA']['dataset_path']
@@ -87,6 +88,9 @@ def train_model(cfg):
 
     # device
     device = cfg['TRAIN']['device']
+    
+    # labels
+    
     
 
 
@@ -121,8 +125,8 @@ def train_model(cfg):
             logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
 
         if epoch % 10 == 0:
-            gpu_usage()
-            labels = torch.arange(10).long().to(device)
+            # gpu_usage()
+            labels = torch.arange(cfg['DATA']['num_classes']).long().to(device)
             sampled_images = diffusion.sample(model, n=len(labels), labels=labels)
             ema_sampled_images = diffusion.sample(ema_model, n=len(labels), labels=labels)
             plot_images(sampled_images)
@@ -141,6 +145,10 @@ def init():
     parser.add_argument('--yaml_config', type=str, default='./configs/uncon.yaml', help='exp config file')    
     args = parser.parse_args()
     cfg = yaml.load(open(args.yaml_config,'r'), Loader=yaml.FullLoader)
+
+    # cfg['SAVE']['savedir'] = savedir
+    # with open(f"{savedir}/config.yaml",'w') as f:
+    #   yaml.dump(cfg,f)
 
     return cfg 
     
