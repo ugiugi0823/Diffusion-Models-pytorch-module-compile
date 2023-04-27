@@ -95,7 +95,7 @@ def train_model(cfg):
     device = cfg['TRAIN']['device']
     
     # show image in wandb
-    columns=["id", "image"]
+    columns=["id", "image", "image_ema"]
     
 
 
@@ -137,22 +137,37 @@ def train_model(cfg):
 
         if epoch % 10 == 0:
             gpu_usage()
+
+            
             labels = torch.arange(cfg['DATA']['num_classes']).long().to(device)
             sampled_images = diffusion.sample(model, n=len(labels), labels=labels)
             ema_sampled_images = diffusion.sample(ema_model, n=len(labels), labels=labels)
+
+
+
+
+            # 시각화
             plot_images(sampled_images)
             save_images(sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", cfg['DATA']['run_name'], f"{epoch}.jpg"))
             save_images(ema_sampled_images, os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/results", cfg['DATA']['run_name'], f"{epoch}_ema.jpg"))
+            
+            # 이미지 그리드 저장
+            img = save_images2(sampled_images)
+            img_ema = save_images2(ema_sampled_images)
+
+            test_table = wandb.Table(columns=columns)
+            test_table.add_data(epoch, wandb.Image(img), wandb.Image(img_ema))
+            wandb.log({"test_predictions" : test_table})
+
+
+
+            # 모델 저장
             torch.save(model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"ckpt_{epoch}_.pt"))
             torch.save(ema_model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"ema_ckpt_{epoch}_.pt"))
             torch.save(optimizer.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"optim_{epoch}_.pt"))
-            img = save_images2(sampled_images)
-            test_table = wandb.Table(columns=columns)
-            test_table.add_data(epoch, wandb.Image(img))
 
-            # img = save_images.cpu().numpy()
-            # test_table = wandb.Table(columns=columns)
-            # test_table.add_data(epoch, wandb.Image(img))    
+
+
 
 
 
@@ -160,7 +175,7 @@ def train_model(cfg):
 def init():
     # configs 
     parser = argparse.ArgumentParser(description='iyaho')
-    parser.add_argument('--yaml_config', type=str, default='./configs/uncon.yaml', help='exp config file')    
+    parser.add_argument('--yaml_config', type=str, default='./configs/cifer.yaml', help='exp config file')    
     args = parser.parse_args()
     cfg = yaml.load(open(args.yaml_config,'r'), Loader=yaml.FullLoader)
 
@@ -172,7 +187,7 @@ def init():
     
     run = wandb.init(
       # Set the project where this run will be logged
-      project=cfg['DATA']['data'],
+      project=cfg['DATA']['day'],
       # Track hyperparameters and run metadata
       config=cfg,
     )
