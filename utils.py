@@ -21,6 +21,14 @@ def save_images(images, path, **kwargs):
     im.save(path)
 
 
+def save_images2(images, **kwargs):
+    grid = torchvision.utils.make_grid(images, **kwargs)
+    ndarr = grid.permute(1, 2, 0).to('cpu').numpy()
+    im = Image.fromarray(ndarr)
+    
+    return im
+
+
 def get_data(image_size, dataset_path, batch_size):
     transforms = torchvision.transforms.Compose([
         torchvision.transforms.Resize(80),  # args.image_size + 1/4 *args.image_size
