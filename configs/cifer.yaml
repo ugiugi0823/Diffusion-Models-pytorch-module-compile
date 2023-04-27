@@ -1,8 +1,9 @@
 DATA:
   run_name: ddpm_cifer
-  dataset_path: /content/Diffusion-Models-pytorch-module-compile/datasets/cifar10-64/train
+  dataset_path: /content/Diffusion-Models-pytorch-module-compile-yaml/datasets/cifar10-64/train
   num_classes: 10
   image_size: 64
+  day: ddpm_cifer_2023.04.27_2
 
 MODEL:
   unet: UNet_conditional
