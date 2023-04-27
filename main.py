@@ -4,6 +4,7 @@ import time
 import argparse
 import yaml
 import torch
+import wandb
 
 import numpy as np
 import torch.nn as nn
@@ -13,9 +14,13 @@ from torch import optim
 from torch.utils.tensorboard import SummaryWriter
 from GPUtil import showUtilization as gpu_usage
 
-from utils import plot_images, save_images, setup_logging, get_data
+from utils import plot_images, save_images, setup_logging, get_data, save_images2
 from modules import UNet_conditional, EMA
 import logging
+
+
+
+
 
 
 
@@ -89,8 +94,8 @@ def train_model(cfg):
     # device
     device = cfg['TRAIN']['device']
     
-    # labels
-    
+    # show image in wandb
+    columns=["id", "image"]
     
 
 
@@ -122,10 +127,16 @@ def train_model(cfg):
             ema.step_ema(ema_model, model)
 
             pbar.set_postfix(MSE=loss.item())
+
+            ### 옹 이미지 확인해볼까요?
+            
+            
+
+            wandb.log({"MSE": loss.item()})
             logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
 
         if epoch % 10 == 0:
-            # gpu_usage()
+            gpu_usage()
             labels = torch.arange(cfg['DATA']['num_classes']).long().to(device)
             sampled_images = diffusion.sample(model, n=len(labels), labels=labels)
             ema_sampled_images = diffusion.sample(ema_model, n=len(labels), labels=labels)
@@ -135,6 +146,13 @@ def train_model(cfg):
             torch.save(model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"ckpt_{epoch}_.pt"))
             torch.save(ema_model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"ema_ckpt_{epoch}_.pt"))
             torch.save(optimizer.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"optim_{epoch}_.pt"))
+            img = save_images2(sampled_images)
+            test_table = wandb.Table(columns=columns)
+            test_table.add_data(epoch, wandb.Image(img))
+
+            # img = save_images.cpu().numpy()
+            # test_table = wandb.Table(columns=columns)
+            # test_table.add_data(epoch, wandb.Image(img))    
 
 
 
@@ -150,6 +168,20 @@ def init():
     # with open(f"{savedir}/config.yaml",'w') as f:
     #   yaml.dump(cfg,f)
 
+    wandb.login(key='')
+    
+    run = wandb.init(
+      # Set the project where this run will be logged
+      project=cfg['DATA']['data'],
+      # Track hyperparameters and run metadata
+      config=cfg,
+    )
+    
+
+
+
+    
+
     return cfg 
     
     # # save point 
@@ -162,6 +194,7 @@ def init():
     
 
 if __name__ == '__main__':
+
     end = time.time() 
     cfg = init()
     
