@@ -1,8 +1,9 @@
 DATA:
   run_name: ddpm_land
-  dataset_path: /content/Diffusion-Models-pytorch-module-compile/datasets/Landscape_classifier_02/training
+  dataset_path: /content/Diffusion-Models-pytorch-module-compile-yaml/datasets/Landscape_classifier_02/training
   num_classes: 6
   image_size: 64
+  day: ddpm_land_day
 
 MODEL:
   unet: UNet_conditional
