@@ -25,13 +25,8 @@ def save_images(images, path, **kwargs):
 def save_images2(images, **kwargs):
     grid = torchvision.utils.make_grid(images, **kwargs)
     ndarr = grid.permute(1, 2, 0).to('cpu').numpy()
-    im = Image.fromarray(ndarr)
-    
+    im = Image.fromarray(ndarr)    
     return im
-
-
-
-
 
 
 def get_data(image_size, dataset_path, batch_size):
