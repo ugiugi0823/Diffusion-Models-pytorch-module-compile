@@ -20,12 +20,6 @@ import logging
 
 
 
-
-
-
-
-
-
 logging.basicConfig(format="%(asctime)s - %(levelname)s: %(message)s", level=logging.INFO, datefmt="%I:%M:%S")
 
 
@@ -96,9 +90,7 @@ def train_model(cfg):
     
     # show image in wandb
     columns=["id", "image", "image_ema"]
-    
-
-
+  
     model = UNet_conditional(num_classes=cfg['DATA']['num_classes']).to(device)
     optimizer = optim.AdamW(model.parameters(), lr=cfg['TRAIN']['lr'])
     mse = nn.MSELoss()
@@ -128,23 +120,14 @@ def train_model(cfg):
 
             pbar.set_postfix(MSE=loss.item())
 
-            ### 옹 이미지 확인해볼까요?
-            
-            
-
             wandb.log({"MSE": loss.item()})
             logger.add_scalar("MSE", loss.item(), global_step=epoch * l + i)
 
         if epoch % 10 == 0:
             gpu_usage()
-
-            
             labels = torch.arange(cfg['DATA']['num_classes']).long().to(device)
             sampled_images = diffusion.sample(model, n=len(labels), labels=labels)
             ema_sampled_images = diffusion.sample(ema_model, n=len(labels), labels=labels)
-
-
-
 
             # 시각화
             plot_images(sampled_images)
@@ -159,17 +142,10 @@ def train_model(cfg):
             test_table.add_data(epoch, wandb.Image(img), wandb.Image(img_ema))
             wandb.log({"test_predictions" : test_table})
 
-
-
             # 모델 저장
             torch.save(model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"ckpt_{epoch}_.pt"))
             torch.save(ema_model.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"ema_ckpt_{epoch}_.pt"))
             torch.save(optimizer.state_dict(), os.path.join("/content/drive/MyDrive/Conquer_Diffusion/Diff/model", cfg['DATA']['run_name'], f"optim_{epoch}_.pt"))
-
-
-
-
-
 
 
 def init():
@@ -192,11 +168,6 @@ def init():
       config=cfg,
     )
     
-
-
-
-    
-
     return cfg 
     
     # # save point 
@@ -209,9 +180,7 @@ def init():
     
 
 if __name__ == '__main__':
-
     end = time.time() 
     cfg = init()
-    
     train_model(cfg)
     print(time.time() -end)
