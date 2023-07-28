@@ -1,6 +1,6 @@
 DATA:
   run_name: ddpm_wta_test
-  dataset_path: /home/hy/Workspace/2023/diff/Data/cifar/cifar10-64/train
+  dataset_path: /media/oem/VCL_8TB1/VCL/Hyunwook/Data/wta_no_mask
   num_classes: 10
   image_size: 1024
   day: ddpm_wta_day
