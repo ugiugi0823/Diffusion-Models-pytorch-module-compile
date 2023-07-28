@@ -1,0 +1,19 @@
+DATA:
+  run_name: ddpm_wta_test
+  dataset_path: /home/hy/Workspace/2023/diff/Data/cifar/cifar10-64/train
+  num_classes: 10
+  image_size: 1024
+  day: ddpm_wta_day
+
+MODEL:
+  unet: UNet_conditional
+  ema: EMA
+
+TRAIN:
+  batch_size: 8
+  device: cuda
+  epochs: 2
+  lr: 0.0003
+  multigpu: false
+  scheulder: false
+  seed: 111
